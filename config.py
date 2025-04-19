@@ -1,2 +1,10 @@
 # config.py
-API_TOKEN = "7942534287:AAEdcmXt0fxQSHxh4dkeSYsI34qdmHFFpg8"
+API_TOKEN = "7901546688:AAGiJEX4ZxElfJYJ8frI9OhENGtdakvgrpY"
+
+DB_USER = "postgres"
+DB_PASSWORD = "911957"
+DB_HOST = "localhost"  # Или IP-адрес сервера БД
+DB_PORT = "5432"       # Стандартный порт PostgreSQL
+DB_NAME = "zoobot"
+
+DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
