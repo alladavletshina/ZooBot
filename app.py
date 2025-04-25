@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
-from config import API_TOKEN
+from config import API_TOKEN, BOT_LINK
 from database import Feedback, SessionLocal
 from utils import questions, animal_descriptions, score_to_animals, calculate_total_score
 
@@ -22,17 +22,23 @@ class QuizState(StatesGroup):
 current_question_index = 0
 user_score = {}
 
-# Основное меню
+# Главное меню
 main_menu = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text="Заполнить квиз")],
-    [KeyboardButton(text="Оставить отзыв")]
+    [KeyboardButton(text="Запустить викторину 🔥")],
+    [KeyboardButton(text="Оставить отзыв ✏️")],
+    [KeyboardButton(text="Закрыть ⛔")]
 ], resize_keyboard=True)
+
+# Кнопка для публикации результата
+share_button = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="✨ Поделиться моим результатом", switch_inline_query=f"Моя викторина: {BOT_LINK}")]
+])
 
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     await message.answer("Добро пожаловать в наше приложение!\n\nГлавное меню:", reply_markup=main_menu)
 
-@dp.message(lambda msg: msg.text == "Заполнить квиз")
+@dp.message(lambda msg: msg.text == "Запустить викторину 🔥")
 async def fill_quiz(message: types.Message, state: FSMContext):
     global current_question_index
     current_question_index = 0
@@ -43,8 +49,8 @@ async def ask_next_question(chat_id, state: FSMContext):
     global current_question_index
     if current_question_index >= len(questions):
         final_result = determine_final_result()
-        result_message = f"Твой результат: {final_result}. {animal_descriptions.get(final_result)}"
-        await bot.send_message(chat_id, result_message)
+        result_message = f"Твой результат: {final_result}. {animal_descriptions.get(final_result)}!"
+        await bot.send_message(chat_id, result_message, reply_markup=share_button)
         await state.clear()
         return
 
@@ -62,10 +68,10 @@ async def process_answer(callback_query: types.CallbackQuery, state: FSMContext)
     await ask_next_question(callback_query.from_user.id, state)
     await callback_query.answer()
 
-@dp.message(lambda msg: msg.text == "Оставить отзыв")
+@dp.message(lambda msg: msg.text == "Оставить отзыв ✏️")
 async def enter_feedback(message: types.Message, state: FSMContext):
     cancel_button = InlineKeyboardButton(text="Отмена", callback_data="cancel_feedback")
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[cancel_button]])  # Исправлено тут
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[cancel_button]])
     await message.answer("Напишите ваш отзыв:", reply_markup=keyboard)
     await state.set_state(QuizState.leave_feedback)
 
@@ -100,9 +106,14 @@ async def process_feedback(message: types.Message, state: FSMContext):
         db_session.close()
         await state.clear()
 
+@dp.message(lambda msg: msg.text == "Закрыть ⛔")
+async def close_app(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer("До встречи! Приложение закрыто.", reply_markup=None)
+
 def determine_final_result():
     total_points = calculate_total_score(list(user_score.values()))
     for score_range, animal in score_to_animals.items():
         if total_points in score_range:
             return animal
-    return "Неопределённое животное"
+    return "Неопределённый результат"
