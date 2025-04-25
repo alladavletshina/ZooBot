@@ -1,5 +1,3 @@
-# utils.py
-# Список вопросов и вариантов ответов
 questions = [
     {
         "text": "Какие места отдыха вам нравятся?",
@@ -13,25 +11,18 @@ questions = [
     }
 ]
 
-# Таблица соответствий баллов животным
 score_to_animals = {
     range(2, 4): "Собака",
     range(4, 6): "Кошка",
     range(6, 8): "Волк"
 }
 
-# Таблица описания животных
 animal_descriptions = {
     "Собака": "Верный друг, преданный и верный своим близким.",
     "Кошка": "Независимый дух, ценящий комфорт и уют.",
     "Волк": "Храбрый лидер, готовый защищать свою территорию."
 }
 
-# Индекс текущего вопроса
-current_question_index = 0
-user_score = {}
-
-# Функция расчета общего количества баллов
 def calculate_total_score(user_answers):
     total_points = sum([questions[i].get("points").get(ans, 0) for i, ans in enumerate(user_answers)])
     return total_points

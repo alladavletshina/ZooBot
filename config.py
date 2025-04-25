@@ -1,5 +1,5 @@
 # config.py
-API_TOKEN = "7901546688:AAGiJEX4ZxElfJYJ8frI9OhENGtdakvgrpY"
+API_TOKEN = "7702464166:AAHqwKv4dG6trelCc-xhkdVBorJrrSuJ6F8"
 
 DB_USER = "postgres"
 DB_PASSWORD = "911957"

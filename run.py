@@ -1,12 +1,8 @@
-from app.app import dp, bot
+from app import dp, bot
+import asyncio
 
-# Запуск основной части приложения
-async def run_bot():
+async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    try:
-        import asyncio
-        asyncio.run(run_bot())
-    except KeyboardInterrupt:
-        print("Остановлен вручную.")
+    asyncio.run(main())

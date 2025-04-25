@@ -13,9 +13,7 @@ class Feedback(Base):
     chat_id = Column(Integer)
     feedback_text = Column(Text)
 
-# Создаем соединение с базой данных
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Создаем таблицы в базе данных (это делается единожды)
 Base.metadata.create_all(bind=engine)
