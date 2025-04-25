@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
-from config import API_TOKEN, BOT_LINK
+from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE
 from database import Feedback, SessionLocal
 from utils import questions, animal_descriptions, score_to_animals, calculate_total_score
 
@@ -18,6 +18,7 @@ dp = Dispatcher(storage=storage)
 class QuizState(StatesGroup):
     quiz_in_progress = State()
     leave_feedback = State()
+    contact_support = State()
 
 current_question_index = 0
 user_score = {}
@@ -26,12 +27,18 @@ user_score = {}
 main_menu = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="Запустить викторину 🔥")],
     [KeyboardButton(text="Оставить отзыв ✏️")],
+    [KeyboardButton(text="Связаться с поддержкой 💬")],
     [KeyboardButton(text="Закрыть ⛔")]
 ], resize_keyboard=True)
 
 # Кнопка для публикации результата
 share_button = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="✨ Поделиться моим результатом", switch_inline_query=f"Моя викторина: {BOT_LINK}")]
+])
+
+contact_button = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Написать письмо", callback_data="send_email")],
+    [InlineKeyboardButton(text="Позвонить", callback_data="make_call")]
 ])
 
 @dp.message(CommandStart())
@@ -105,6 +112,36 @@ async def process_feedback(message: types.Message, state: FSMContext):
     finally:
         db_session.close()
         await state.clear()
+
+@dp.message(lambda msg: msg.text == "Связаться с поддержкой 💬")
+async def contact_support(message: types.Message, state: FSMContext):
+    await message.answer("Выберите удобный способ связи:", reply_markup=contact_button)
+    await state.set_state(QuizState.contact_support)
+
+@dp.callback_query(QuizState.contact_support)
+async def handle_contact_choice(callback_query: types.CallbackQuery, state: FSMContext):
+    method = callback_query.data
+    final_result = determine_final_result()
+    user_id = callback_query.from_user.id
+    username = callback_query.from_user.username or "аноним"
+
+    match method:
+        case "send_email":
+            email_subject = f"[Викторина]: Вопрос от {username} ({user_id})"
+            email_body = (
+                f"Пользователь: {username}\n"
+                f"ID пользователя: {user_id}\n"
+                f"Результат викторины: {final_result}\n"
+                "\n"
+                "Ваш вопрос или предложение?"
+            )
+            await bot.send_message(callback_query.from_user.id, f"Отправьте своё сообщение нам на почту: {CONTACT_EMAIL}.\nТема письма: '{email_subject}'")
+        case "make_call":
+            phone_number = CONTACT_PHONE
+            await bot.send_message(callback_query.from_user.id, f"Позвоните нам по номеру: {phone_number}")
+
+    await state.clear()
+    await callback_query.answer()
 
 @dp.message(lambda msg: msg.text == "Закрыть ⛔")
 async def close_app(message: types.Message, state: FSMContext):
