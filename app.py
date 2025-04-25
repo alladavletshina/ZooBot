@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
-from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE
+from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE, ZOO_WEBSITE
 from database import Feedback, SessionLocal
 from utils import questions, animal_descriptions, score_to_animals, calculate_total_score
 
@@ -41,6 +41,10 @@ contact_button = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Позвонить", callback_data="make_call")]
 ])
 
+opportunity_button = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Узнать больше о Клубе друзей", url = ZOO_WEBSITE)]
+])
+
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     await message.answer("Добро пожаловать в наше приложение!\n\nГлавное меню:", reply_markup=main_menu)
@@ -56,8 +60,10 @@ async def ask_next_question(chat_id, state: FSMContext):
     global current_question_index
     if current_question_index >= len(questions):
         final_result = determine_final_result()
-        result_message = f"Твой результат: {final_result}. {animal_descriptions.get(final_result)}!"
-        await bot.send_message(chat_id, result_message, reply_markup=share_button)
+        result_message = f"Поздравляю! Твоё животное — {final_result}!\n\n{animal_descriptions.get(final_result)}.\n\n"
+        result_message += "🐾 Ты можешь поддержать нашего друга, став членом Клуба друзей зоопарка. Каждая твоя копейка помогает сохранить природу и разнообразие нашей планеты.\n\n"
+        result_message += "Присоединяйся к нашим друзьям и сделай мир немного добрее!"
+        await bot.send_message(chat_id, result_message, reply_markup=opportunity_button)
         await state.clear()
         return
 
