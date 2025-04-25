@@ -23,6 +23,14 @@ class QuizState(StatesGroup):
 current_question_index = 0
 user_score = {}
 
+# Словарь с соответствием животных и путей к их изображениям
+ANIMAL_IMAGES = {
+    "Собака": "./images/alpaka.jpg",
+    "Тигр": "./images/tiger.jpg",
+    "Волк": "./images/wolf.jpg",
+    "Неопределённое животное": "./images/unknown.jpg"
+}
+
 # Главное меню
 main_menu = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="Запустить викторину 🔥")],
@@ -42,7 +50,7 @@ contact_button = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 opportunity_button = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Узнать больше о Клубе друзей", url = ZOO_WEBSITE)]
+    [InlineKeyboardButton(text="Узнать больше о Клубе друзей", url=ZOO_WEBSITE)]
 ])
 
 @dp.message(CommandStart())
@@ -56,6 +64,8 @@ async def fill_quiz(message: types.Message, state: FSMContext):
     await ask_next_question(message.chat.id, state)
     await state.set_state(QuizState.quiz_in_progress)
 
+from aiogram.types.input_file import FSInputFile  # Импортируем класс FSInputFile
+
 async def ask_next_question(chat_id, state: FSMContext):
     global current_question_index
     if current_question_index >= len(questions):
@@ -63,7 +73,13 @@ async def ask_next_question(chat_id, state: FSMContext):
         result_message = f"Поздравляю! Твоё животное — {final_result}!\n\n{animal_descriptions.get(final_result)}.\n\n"
         result_message += "🐾 Ты можешь поддержать нашего друга, став членом Клуба друзей зоопарка. Каждая твоя копейка помогает сохранить природу и разнообразие нашей планеты.\n\n"
         result_message += "Присоединяйся к нашим друзьям и сделай мир немного добрее!"
-        await bot.send_message(chat_id, result_message, reply_markup=opportunity_button)
+
+        # Получаем путь к изображению животного
+        image_path = ANIMAL_IMAGES.get(final_result, ANIMAL_IMAGES['Неопределённое животное'])
+
+        # Отправляем изображение с подписью, используя FSInputFile
+        await bot.send_photo(chat_id, FSInputFile(image_path), caption=result_message)
+
         await state.clear()
         return
 
