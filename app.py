@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
 from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE, ZOO_WEBSITE, ADMINS_IDS
 from database import Feedback, SessionLocal
-from utils import questions, animal_descriptions, score_to_animals, calculate_total_score
+from utils import questions, animal_descriptions, score_to_animals, calculate_total_score, ANIMAL_IMAGES
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,14 +34,6 @@ class QuizState(StatesGroup):
 
 current_question_index = 0
 user_score = {}
-
-# Словарь с соответствием животных и путей к их изображениям
-ANIMAL_IMAGES = {
-    "Альпака": "./images/alpaka.jpg",
-    "Тигр": "./images/tiger.jpg",
-    "Волк": "./images/wolf.jpg",
-    "Неопределённое животное": "./images/unknown.jpg"
-}
 
 # Главное меню
 main_menu = ReplyKeyboardMarkup(keyboard=[
