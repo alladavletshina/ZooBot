@@ -40,13 +40,9 @@ main_menu = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="Запустить викторину 🔥")],
     [KeyboardButton(text="Оставить отзыв ✏️")],
     [KeyboardButton(text="Связаться с поддержкой 💬")],
+    [KeyboardButton(text="Клуб друзей 🐾")],
     [KeyboardButton(text="Закрыть ⛔")]
 ], resize_keyboard=True)
-
-# Кнопка для публикации результата
-share_button = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="✨ Поделиться моим результатом", switch_inline_query=f"Моя викторина: {BOT_LINK}")]
-])
 
 contact_button = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Написать письмо", callback_data="send_email")],
@@ -59,7 +55,31 @@ opportunity_button = InlineKeyboardMarkup(inline_keyboard=[
 
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
-    await message.answer("Добро пожаловать в наше приложение!\n\nГлавное меню:", reply_markup=main_menu)
+    await message.answer(
+        "Добро пожаловать в наше приложение!\n\n"
+        "Здесь вы можете:\n"
+        "- Пройти викторину и узнать свое тотемное животное\n"
+        "- Присоединиться к Клубу друзей зоопарка\n"
+        "- Оставить отзыв или связаться с поддержкой\n\n"
+        "Выберите действие:",
+        reply_markup=main_menu
+    )
+
+@dp.message(F.text == "Клуб друзей 🐾")
+async def friends_club_info(message: types.Message):
+    await message.answer(
+        "🐯 Клуб друзей зоопарка 🦁\n\n"
+        "Присоединяйтесь к нашему сообществу и поддерживайте животных!\n"
+        "Ваше участие помогает:\n"
+        "- Сохранять редкие виды\n"
+        "- Создавать комфортные условия для животных\n"
+        "- Развивать образовательные программы\n\n"
+        "Каждый член клуба получает:\n"
+        "✅ Эксклюзивные новости\n"
+        "✅ Возможность посещать закрытые мероприятия\n"
+        "✅ Именной сертификат",
+        reply_markup=opportunity_button
+    )
 
 @dp.message(lambda msg: msg.text == "Запустить викторину 🔥")
 async def fill_quiz(message: types.Message, state: FSMContext):
