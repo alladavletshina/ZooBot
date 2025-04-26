@@ -1,11 +1,12 @@
 import logging
-from aiogram import Bot, Dispatcher, F, types
+from aiogram.types.input_file import FSInputFile
+from aiogram import Bot, Dispatcher, F, types, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
-from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE, ZOO_WEBSITE
+from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE, ZOO_WEBSITE, ADMINS_IDS
 from database import Feedback, SessionLocal
 from utils import questions, animal_descriptions, score_to_animals, calculate_total_score
 
@@ -14,6 +15,17 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
+
+async def delete_webhook():
+    bot = Bot(token=API_TOKEN)
+    await bot.delete_webhook()
+    await bot.session.close()
+
+async def check_admin(message: types.Message):
+    if message.from_user.id not in ADMINS_IDS:
+        await message.answer("Доступ запрещён")
+        return False
+    return True
 
 class QuizState(StatesGroup):
     quiz_in_progress = State()
@@ -25,7 +37,7 @@ user_score = {}
 
 # Словарь с соответствием животных и путей к их изображениям
 ANIMAL_IMAGES = {
-    "Собака": "./images/alpaka.jpg",
+    "Альпака": "./images/alpaka.jpg",
     "Тигр": "./images/tiger.jpg",
     "Волк": "./images/wolf.jpg",
     "Неопределённое животное": "./images/unknown.jpg"
@@ -64,7 +76,6 @@ async def fill_quiz(message: types.Message, state: FSMContext):
     await ask_next_question(message.chat.id, state)
     await state.set_state(QuizState.quiz_in_progress)
 
-from aiogram.types.input_file import FSInputFile  # Импортируем класс FSInputFile
 
 async def ask_next_question(chat_id, state: FSMContext):
     global current_question_index

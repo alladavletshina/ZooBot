@@ -32,8 +32,6 @@ animal_descriptions = {
     "Волк": "Храбрый лидер, готовый защищать свою территорию."
 }
 
-ANIMAL_IMAGES = ""
-
 def calculate_total_score(user_answers):
     total_points = sum([questions[i].get("points").get(ans, 0) for i, ans in enumerate(user_answers)])
     return total_points
