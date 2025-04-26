@@ -6,6 +6,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 from config import API_TOKEN, BOT_LINK, CONTACT_EMAIL, CONTACT_PHONE, ZOO_WEBSITE, ADMINS_IDS
 from database import Feedback, SessionLocal
 from utils import questions, animal_descriptions, score_to_animals, calculate_total_score, ANIMAL_IMAGES
@@ -89,36 +91,85 @@ async def fill_quiz(message: types.Message, state: FSMContext):
     await state.set_state(QuizState.quiz_in_progress)
 
 
-async def ask_next_question(chat_id, state: FSMContext):
-    global current_question_index
+async def ask_next_question(chat_id: int, state: FSMContext):
     if current_question_index >= len(questions):
         final_result = determine_final_result()
-        result_message = f"Поздравляю! Твоё животное — {final_result}!\n\n{animal_descriptions.get(final_result)}.\n\n"
-        result_message += "🐾 Ты можешь поддержать нашего друга, став членом Клуба друзей зоопарка. Каждая твоя копейка помогает сохранить природу и разнообразие нашей планеты.\n\n"
-        result_message += "Присоединяйся к нашим друзьям и сделай мир немного добрее!"
-
-        # Получаем путь к изображению животного
-        image_path = ANIMAL_IMAGES.get(final_result, ANIMAL_IMAGES['Неопределённое животное'])
-
-        # Отправляем изображение с подписью, используя FSInputFile
-        await bot.send_photo(chat_id, FSInputFile(image_path), caption=result_message)
-
+        await send_quiz_result(chat_id, final_result)
         await state.clear()
         return
 
     question = questions[current_question_index]
-    buttons = [[InlineKeyboardButton(text=opt, callback_data=f"{current_question_index}-{opt}")] for opt in question["options"]]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await bot.send_message(chat_id, question["text"], reply_markup=keyboard)
+    buttons = [[InlineKeyboardButton(text=opt, callback_data=f"{current_question_index}-{opt}")]
+               for opt in question["options"]]
+    await bot.send_message(
+        chat_id,
+        question["text"],
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
+    )
+
 
 @dp.callback_query(QuizState.quiz_in_progress)
-async def process_answer(callback_query: types.CallbackQuery, state: FSMContext):
+async def process_answer(callback: types.CallbackQuery, state: FSMContext):
     global current_question_index
-    index, answer = map(str.strip, callback_query.data.split('-'))
+    index, answer = callback.data.split('-')
     user_score[int(index)] = answer
     current_question_index += 1
-    await ask_next_question(callback_query.from_user.id, state)
-    await callback_query.answer()
+    await ask_next_question(callback.from_user.id, state)
+    await callback.answer()
+
+
+# Результаты и шаринг
+async def create_share_keyboard(result: str):
+    builder = InlineKeyboardBuilder()
+    share_text = (
+        f"Я прошёл викторину и мой результат - {result}! "
+        f"А какое твоё тотемное животное? Пройди тест: {BOT_LINK}"
+    )
+
+    builder.row(
+        InlineKeyboardButton(
+            text="📢 Поделиться в Telegram",
+            url=f"https://t.me/share/url?url={BOT_LINK}&text={share_text}"
+        )
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="🌍 Поделиться в других сетях",
+            callback_data=f"share_ext_{result}"
+        )
+    )
+    return builder.as_markup()
+
+
+async def send_quiz_result(chat_id: int, result: str):
+    image_path = ANIMAL_IMAGES.get(result, ANIMAL_IMAGES['Неопределённое животное'])
+    caption = (
+        f"🎉 <b>Ваш результат:</b> {result}!\n\n"
+        f"{animal_descriptions[result]}\n\n"
+        f"Поделитесь результатом с друзьями!\n"
+        f"<i>Пройти викторину:</i> {BOT_LINK}"
+    )
+
+    await bot.send_photo(
+        chat_id,
+        photo=FSInputFile(image_path),
+        caption=caption,
+        reply_markup=await create_share_keyboard(result),
+        parse_mode="HTML"
+    )
+
+
+@dp.callback_query(F.data.startswith("share_ext_"))
+async def share_external(callback: types.CallbackQuery):
+    animal = callback.data.split('_')[2]
+    await callback.answer()
+    await bot.send_message(
+        callback.from_user.id,
+        f"Скопируйте это сообщение для публикации:\n\n"
+        f"Моё тотемное животное - {animal}!\n\n"
+        f"Хочешь узнать своё? Пройди викторину:\n{BOT_LINK}"
+    )
+
 
 @dp.message(lambda msg: msg.text == "Оставить отзыв ✏️")
 async def enter_feedback(message: types.Message, state: FSMContext):
