@@ -2,8 +2,7 @@ from aiogram import F, types
 from aiogram.fsm.context import FSMContext
 from bot_instance import dp, bot
 from states import QuizState
-from keyboards import main_menu, contact_button
-from quiz_handlers import fill_quiz, process_answer, determine_final_result
+from quiz_handlers import fill_quiz, process_answer
 from feedback_handlers import enter_feedback, cancel_feedback, process_feedback
 from support_handlers import contact_support, handle_contact_choice
 from handlers import commands
