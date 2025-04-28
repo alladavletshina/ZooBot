@@ -5,7 +5,7 @@ from bot_instance import bot
 from keyboards import contact_button
 from states import QuizState
 from config.config import CONTACT_EMAIL, CONTACT_PHONE
-from quiz_handlers import determine_final_result
+from handlers.quiz_handlers import determine_final_result
 
 async def contact_support(message: types.Message, state: FSMContext):
     await message.answer("Выберите удобный способ связи:", reply_markup=contact_button)
