@@ -2,11 +2,11 @@ from aiogram import types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types.input_file import FSInputFile
 
-from bot_instance import bot, dp
+from app.bot_instance import bot, dp
 from config.config import BOT_LINK
-from states import QuizState
-from keyboards import create_share_keyboard
-from utils import questions, ANIMAL_IMAGES, animal_descriptions, calculate_total_score, score_to_animals
+from app.states import QuizState
+from app.keyboards import create_share_keyboard
+from utils.utils import questions, ANIMAL_IMAGES, animal_descriptions, calculate_total_score, score_to_animals
 
 current_question_index = 0
 user_score = {}

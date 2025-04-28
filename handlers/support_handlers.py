@@ -1,9 +1,9 @@
 from aiogram import types
 from aiogram.fsm.context import FSMContext
 
-from bot_instance import bot
-from keyboards import contact_button
-from states import QuizState
+from app.bot_instance import bot
+from app.keyboards import contact_button
+from app.states import QuizState
 from config.config import CONTACT_EMAIL, CONTACT_PHONE
 from handlers.quiz_handlers import determine_final_result
 

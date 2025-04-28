@@ -1,7 +1,7 @@
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
-from bot_instance import dp, bot
-from states import QuizState
+from app.bot_instance import dp, bot
+from app.states import QuizState
 from handlers.quiz_handlers import fill_quiz, process_answer
 from handlers.feedback_handlers import enter_feedback, cancel_feedback, process_feedback
 from handlers.support_handlers import contact_support, handle_contact_choice

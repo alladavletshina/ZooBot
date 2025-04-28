@@ -1,7 +1,7 @@
 from aiogram import Router, F, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from keyboards import main_menu, opportunity_button  # Импортируем из keyboards.py
+from app.keyboards import main_menu, opportunity_button  # Импортируем из keyboards.py
 
 router = Router()
 

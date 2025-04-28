@@ -1,8 +1,7 @@
-from aiogram import types, F
+from aiogram import types
 from aiogram.fsm.context import FSMContext
 
-from bot_instance import bot
-from states import QuizState
+from app.states import QuizState
 from services.database import Feedback, SessionLocal
 import logging
 

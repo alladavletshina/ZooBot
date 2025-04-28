@@ -1,4 +1,3 @@
-# config.py
 import configparser
 
 config = configparser.ConfigParser()
