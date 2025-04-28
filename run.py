@@ -1,4 +1,5 @@
-from app import dp, bot, delete_webhook
+from app import dp, bot
+from utils import delete_webhook
 import asyncio
 
 async def main():

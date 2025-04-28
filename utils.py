@@ -1,4 +1,8 @@
-IMAGES_DIR = "./images/"
+from config.config import API_TOKEN, ADMINS_IDS
+from aiogram import Bot
+from aiogram.types import Message
+
+IMAGES_DIR = "images/"
 
 ANIMAL_IMAGES = {
     "Альпака": IMAGES_DIR + "alpaka.jpg",
@@ -61,3 +65,14 @@ def calculate_total_score(user_answers):
     if total < 5: return min(total + 2, 5)  # Сдвигаем очень низкие баллы
     if total > 15: return max(total - 2, 15)  # Сдвигаем очень высокие баллы
     return total
+
+async def delete_webhook():
+    bot = Bot(token=API_TOKEN)
+    await bot.delete_webhook()
+    await bot.session.close()
+
+async def check_admin(message: Message):
+    if message.from_user.id not in ADMINS_IDS:
+        await message.answer("Доступ запрещён")
+        return False
+    return True
